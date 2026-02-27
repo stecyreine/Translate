@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interprétation Audio Live</title>
+  <link rel="stylesheet" href="src-tauri/resources/live-app/public/css/styles.css" />
+</head>
+<body>
+  <main class="container" id="app">
+    <h1>Interprétation Audio Live</h1>
+    <p class="subtitle">Choisissez votre rôle pour accéder à la diffusion locale.</p>
+
+    <section class="card role-grid">
+      <a class="button button-primary" href="src-tauri/resources/live-app/public/interpreter.html">Interprète</a>
+      <a class="button button-secondary" href="src-tauri/resources/live-app/public/listener.html">Visiteur</a>
+    </section>
+
+    <section class="card notice">
+      <p>
+        Application Tauri intégrée avec serveur Node.js.
+        Le serveur démarre automatiquement avec l'application.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>État du serveur</h2>
+      <p id="serverStatus">Vérification...</p>
+      <button id="testBtn" class="button button-primary">Tester connexion</button>
+    </section>
+
+    <footer class="site-footer">Copyright © DevImpact. Tous droits réservés.</footer>
+  </main>
+
+  <script type="module">
+    import { invoke } from 'https://cdn.jsdelivr.net/npm/@tauri-apps/api/dist/tauri.js';
+    
+    document.getElementById('testBtn').addEventListener('click', async () => {
+      try {
+        const serverUrl = await invoke('get_server_url');
+        const response = await fetch(serverUrl + '/health', { mode: 'cors' });
+        const data = await response.json();
+        document.getElementById('serverStatus').textContent = '✅ Serveur actif';
+      } catch (e) {
+        document.getElementById('serverStatus').textContent = '❌ Serveur non accessible: ' + e.message;
+      }
+    });
+
+    // Tester la connexion au démarrage
+    setTimeout(async () => {
+      try {
+        const serverUrl = await invoke('get_server_url');
+        await fetch(serverUrl + '/health');
+        document.getElementById('serverStatus').textContent = '✅ Serveur actif';
+      } catch {
+        document.getElementById('serverStatus').textContent = '⏳ Démarrage du serveur...';
+      }
+    }, 2000);
+  </script>
+</body>
+</html>
